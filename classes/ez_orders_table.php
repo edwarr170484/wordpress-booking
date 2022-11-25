@@ -4,15 +4,18 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
 
-class Ez_Services_Table extends WP_List_Table {
+class Ez_Orders_Table extends WP_List_Table {
     private $manager;
 
     public function get_columns() {
 		$columns = array(
 			'cb' => '<input type="checkbox" />',
-			'service_name' => __( '<b>Service name</b>', 'ez_booking' ),
-			'service_price' => __( '<b>Service price</b>', 'ez_booking' ),
-			'service_active' => __( '<b>Active</b>', 'ez_booking' ),
+			'order_user_info' => __( '<b>User info</b>', 'ez_booking' ),
+            'order_user_services' => __( '<b>Services</b>', 'ez_booking' ),
+			'order_user_info' => __( '<b>Order info</b>', 'ez_booking' ),
+			'order_user_email' => __( '<b>Email</b>', 'ez_booking' ),
+            'order_answers' => __( '<b>Q/A</b>', 'ez_booking' ),
+            'order_is_confirm' => __( '<b>Confirmation</b>', 'ez_booking' ),
 		);
 
 		return $columns;
@@ -20,8 +23,8 @@ class Ez_Services_Table extends WP_List_Table {
 
     public function __construct($manager) {
 		parent::__construct( array(
-			'singular' => 'tour',
-			'plural' => 'tours',
+			'singular' => 'order',
+			'plural' => 'orders',
 			'ajax' => false,
 		) );
 
@@ -80,13 +83,26 @@ class Ez_Services_Table extends WP_List_Table {
 
     function column_cb($item) {
         return sprintf(
-            '<input type="checkbox" name="serviceId[]" value="%s" />', $item['id']
+            '<input type="checkbox" name="order[]" value="%s" />', $item['id']
         );
     }
 
-    function column_service_name( $item){
+    function column_order_user_info( $item){
+        $avatar = $item['customer_avatar'] ? $item['customer_avatar'] : '/wp-content/plugins/booking/images/no-avatar.png';
+        
         return sprintf(
-            '<input type="text" name="service[' . $item['id'] . '][name]" value="%s" class="full-width" />', $item['service_name']
+            '<table>
+                <tr>
+                    <td>
+                        <img src="%s" style="max-width: 55px" />
+                    </td>
+                    <td>
+                        <b>%s</b><br/>
+                        <i>%s, %s</i>
+                    </td>
+                </tr>
+            </table>   
+            ', $avatar, $item['customer_name'], $item['customer_phone'], $item['customer_email']
         );
     }
 
@@ -108,19 +124,6 @@ class Ez_Services_Table extends WP_List_Table {
         );
 
         return $actions;
-    }
-
-    public function handle_form_action(){
-        if(isset($_POST['service_name']) && isset($_POST['service_price'])){
-            $data = [ 
-                'service_name' => $_POST['service_name'],
-                'service_price' => $_POST['service_price'],
-            ];
-
-            $this->manager->insert($data, ['%s', '%s']);
-
-            add_settings_error( 'ez_booking_messages', 'ez_booking_message', __( 'New service added', 'ez_tg_booking' ), 'success' );
-        }
     }
 
     public function handle_table_actions(){

@@ -1,6 +1,8 @@
 <?php
-    require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_tg_manager.php';
+    require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_manager.php';
     require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_services_table.php';
+    require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_days_table.php';
+    require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_orders_table.php';
 
     if ( isset( $_GET['settings-updated'] ) ) {
 		add_settings_error( 'ez_tg_booking_messages', 'ez_tg_booking_message', __( 'Настройки сохранены', 'ez_tg_booking' ), 'updated' );
@@ -12,30 +14,11 @@
         wp_redirect('?page=booking/admin/options.php&tab=bookings');
     }
 
-    $manager = new Ez_Tg_Booking_Manager();
-    $table = new Ez_Services_Table();
+    $services_manager = new Ez_Manager('ez_booking_services');
+    $orders_manager = new Ez_Manager('ez_booking_order');
+    $days_manager = new Ez_Manager('ez_booking_days');
 
-    if($_SERVER['REQUEST_METHOD'] == "POST"){
-        global $wpdb;
-        $table_name = $wpdb->prefix . "ez_booking_services";
-
-        /* check plugin form action */
-        switch($_POST['ez_tg_booking_form_action']){
-            case 'add_new':
-                if($manager->insert($_POST)){
-                    add_settings_error( 'ez_tg_booking_messages', 'ez_tg_booking_message', __( 'Запись добавлена', 'ez_tg_booking' ), 'success' );
-                }else{
-                    add_settings_error( 'ez_tg_booking_messages', 'ez_tg_booking_message', __( 'Ошибка при добавлении записи', 'ez_tg_booking' ), 'error' );
-                }
-            break;
-        }
-
-        /* catch bulk table actions */
-        $table->handle_table_actions();
-    }
-
-	// show error/update messages
-	settings_errors( 'ez_tg_booking_messages' );
+    settings_errors( 'ez_booking_messages' );
 ?>
 <div class="wrap">
     <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -48,15 +31,46 @@
 
     <?php switch($active_tab){
         case 'bookings':
+            $orders_table = new Ez_Orders_Table($orders_manager);
+            ?>
+                <form method="POST" action="">
+                    <?php
+                        $orders_table->handle_table_actions();
+                        $orders_table->prepare_items(); 
+                        $orders_table->display();
+                    ?>
+                </form>
+            <?php
         break;
 
         case 'services':
+            $services_table = new Ez_Services_Table($services_manager);
         ?>
-            <div class="tours">
+            <div class="services">
+                <div class="service-form">
+                    <h1>Add new service</h1>
+                    <form method="POST" action="">
+                        <table class="form-table" role="presentation">
+	                        <tbody>
+                                <tr class="form-field form-required">
+                                    <th scope="row"><label for="service_name">Service name <span class="description">(required)</span></label></th>
+                                    <td><input name="service_name" type="text" id="service_name" value="" required /></td>
+                                </tr>
+                                <tr class="form-field form-required">
+                                    <th scope="row"><label for="service_price">Service price <span class="description">(required)</span></label></th>
+                                    <td><input name="service_price" type="text" id="service_price" value="" required /></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p class="submit"><input type="submit" name="createservice" id="createservice" class="button button-primary" value="Add new service"></p>
+                    </form>
+                </div>
                 <form method="POST" action="">
                     <?php
-                        $table->prepare_items(); 
-                        $table->display();
+                        $services_table->handle_form_action();
+                        $services_table->handle_table_actions();
+                        $services_table->prepare_items(); 
+                        $services_table->display();
                     ?>
                 </form>
             </div>
@@ -64,8 +78,17 @@
         break;
 
         case 'schedule':
+            $days_table = new Ez_Days_Table($days_manager);
         ?>
-            
+            <div class="services">
+                <form method="POST" action="">
+                    <?php
+                        $days_table->handle_table_actions();
+                        $days_table->prepare_items(); 
+                        $days_table->display();
+                    ?>
+                </form>
+            </div>
         <?php
         break;
 

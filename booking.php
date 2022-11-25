@@ -27,7 +27,7 @@ function ez_booking_activate(){
 	) $charset_collate;";
 
     $sql .= "CREATE TABLE " . $wpdb->prefix . "ez_booking_days (
-		id int(15) NOT NULL,
+		id int(15) NOT NULL auto_increment,
         day_name text DEFAULT NULL,
         is_active int(1) DEFAULT 1,
         start_time time NOT NULL,
@@ -38,7 +38,7 @@ function ez_booking_activate(){
  	) $charset_collate;\n";
 
     $sql .= "CREATE TABLE " . $wpdb->prefix . "ez_booking_order (
-		id int(15) NOT NULL,
+		id int(15) NOT NULL auto_increment,
         customer_name varchar(255) DEFAULT NULL,
         customer_phone varchar(255) DEFAULT NULL,
         customer_email varchar(255) DEFAULT NULL,
@@ -50,6 +50,7 @@ function ez_booking_activate(){
         services longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`services`)),
         answers longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`answers`)),
         comment longtext DEFAULT NULL,
+        is_confirmed int(1) DEFAULT 0,
         PRIMARY KEY  (id)
  	) $charset_collate;\n";
 
