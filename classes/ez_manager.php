@@ -15,6 +15,16 @@ class Ez_Manager{
         return $query_results;		
     }
 
+    public function getUpperDate($date){
+        $query_results = $this->manager->get_results("SELECT * FROM $this->table WHERE date >= " . $date, ARRAY_A);
+        return $query_results;
+    }
+
+    public function getDaysByName($name){
+        $query_results = $this->manager->get_results("SELECT * FROM $this->table WHERE day_name = '" . $name . "'", ARRAY_A);
+        return $query_results;
+    }
+
     public function count(){
         return count($this->list());		
     }

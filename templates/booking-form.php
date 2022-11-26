@@ -1,9 +1,15 @@
 <?php 
-$options = get_option('ez_booking_options');
+    require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_selects.php';
 
-if($_SERVER['REQUEST_METHOD'] == "POST"){
-    
-}?>
+    $options = get_option('ez_booking_options');
+
+    if($_SERVER['REQUEST_METHOD'] == "POST"){
+        
+    }
+    $selects = new Ez_Selects(31);
+
+    $availableDates = $selects->getAvailableDates();
+?>
 
 <div class="modal">
     <div class="modal__dialog">
@@ -57,12 +63,17 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
                 <div class="form__select form__select_calendar">
                     <div class="form__field form__field-label">Sélecteur de date*</div>
                     <div class="form__select-options">
-                        <div class="form__select-option" data-option="1">
-                            <span>20.12.2022</span>
-                        </div>
-                        <div class="form__select-option" data-option="2">
-                            <span>21.12.2022</span>
-                        </div>
+                        <?php 
+                            if(count($availableDates) > 0){
+                                foreach($availableDates as $date){
+                                    ?>
+                                    <div class="form__select-option" data-option="<?php echo $date['value'];?>">
+                                        <span><?php echo $date['label'];?></span>
+                                    </div>
+                                    <?php
+                                }
+                            }
+                        ?>
                     </div>
                     <input type="hidden">
                 </div>

@@ -45,7 +45,7 @@ function ez_booking_activate(){
         customer_avatar varchar(255) DEFAULT NULL,
         date_created datetime NOT NULL,
         date date NOT NULL,
-        time time NOT NULL,
+        time varchar(255) DEFAULT NUL,
         price int(15) DEFAULT NULL,
         services longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`services`)),
         answers longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`answers`)),
@@ -92,7 +92,7 @@ function ez_booking_admin_menu(){
         'Simple booking plugin',
         'Booking',
         'manage_options',
-        plugin_dir_path(__FILE__) . 'admin/options.php'       
+        plugin_dir_path(__FILE__) . 'admin/options.php'     
     );
 }   
 

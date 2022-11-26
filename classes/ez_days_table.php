@@ -119,11 +119,22 @@ class Ez_Days_Table extends WP_List_Table {
             case 'save':
                 if(isset($_POST['day']) && count($_POST['day']) > 0){
                     foreach($_POST['day'] as $key => $day){
+                        $start_time = new DateTime($day['start_time']);
+                        $end_time = new DateTime($day['end_time']);
+                        $times = [];
+
+                        if($day['time_period'] > 0){
+                            while($start_time < $end_time){
+                                array_push($times, $start_time->format('H:i') . '-' . $start_time->modify('+' . $day['time_period'] . ' minutes')->format('H:i'));
+                            }
+                        }
+                        
                         $data = [
                             'start_time' => $day['start_time'],
                             'end_time' => $day['end_time'],
                             'time_period' => $day['time_period'],
-                            'is_active' => $day['is_active']
+                            'is_active' => $day['is_active'],
+                            'times' => json_encode($times)
                         ];
 
                         $this->manager->update($key, $data, ['%s', '%s', '%s', '%d']);

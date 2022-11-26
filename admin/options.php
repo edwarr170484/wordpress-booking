@@ -11,7 +11,7 @@
     if( isset( $_GET[ 'tab' ] ) ) {
         $active_tab = $_GET[ 'tab' ];
     }else{
-        wp_redirect('?page=booking/admin/options.php&tab=bookings');
+        $active_tab = 'bookings';
     }
 
     $services_manager = new Ez_Manager('ez_booking_services');
@@ -22,13 +22,13 @@
 ?>
 <div class="wrap">
     <h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+    <h4>Insert shortcode <span style="font-weight: 700">[ez-booking-form][/ez-booking-form]</span> into page where you want to book</h4>
     <nav class="nav-tab-wrapper">
         <a href="?page=booking/admin/options.php&tab=bookings" class="nav-tab <?php echo $active_tab == 'bookings' ? 'nav-tab-active' : ''; ?>">Bookings</a>
         <a href="?page=booking/admin/options.php&tab=services" class="nav-tab <?php echo $active_tab == 'services' ? 'nav-tab-active' : ''; ?>">Servcies</a>
         <a href="?page=booking/admin/options.php&tab=schedule" class="nav-tab <?php echo $active_tab == 'schedule' ? 'nav-tab-active' : ''; ?>">Schedule settings</a>
         <a href="?page=booking/admin/options.php&tab=questions" class="nav-tab <?php echo $active_tab == 'questions' ? 'nav-tab-active' : ''; ?>">Questions settings</a>
     </nav>
-
     <?php switch($active_tab){
         case 'bookings':
             $orders_table = new Ez_Orders_Table($orders_manager);
