@@ -112,7 +112,7 @@
                     </div>
                 </div>
                 <div class="form__buttons">
-                    <button type="button" class="form__button">Annulation</button>
+                    <button type="button" class="form__button form__button_cancel">Annulation</button>
                     <button type="submit" class="form__button">Envoyer</button>
                 </div>
             </form>
