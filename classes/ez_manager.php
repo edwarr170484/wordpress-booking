@@ -15,6 +15,11 @@ class Ez_Manager{
         return $query_results;		
     }
 
+    public function getActiveServices(){
+        $query_results = $this->manager->get_results("SELECT * FROM $this->table WHERE is_active <> 0", ARRAY_A);
+        return $query_results;
+    }
+
     public function getUpperDate($date){
         $query_results = $this->manager->get_results("SELECT * FROM $this->table WHERE date >= " . $date, ARRAY_A);
         return $query_results;

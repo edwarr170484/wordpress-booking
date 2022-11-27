@@ -7,6 +7,8 @@
  * Author URI: https://github.com/edwarr170484
  */
 
+require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_selects.php';
+require_once ABSPATH . 'wp-content/plugins/booking/classes/ez_manager.php';
  
 register_activation_hook( __FILE__, 'ez_booking_activate');
 register_deactivation_hook( __FILE__, 'ez_booking_deactivate');
@@ -51,6 +53,7 @@ function ez_booking_activate(){
         answers longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`answers`)),
         comment longtext DEFAULT NULL,
         is_confirmed int(1) DEFAULT 0,
+        is_canceled int(1) DEFAULT 0,
         PRIMARY KEY  (id)
  	) $charset_collate;\n";
 
@@ -137,12 +140,85 @@ function ez_booking_question_5() {
 
 add_action('admin_init', 'ez_booking_settings_init');
 
-function ez_booking_add_styles() {
-    wp_enqueue_style( 'styles', plugin_dir_url(__FILE__) . '/assets/styles.css', array(), '1.1', 'all');
-    wp_enqueue_script( 'script', plugin_dir_url(__FILE__) . '/assets/script.js', array(), '1.1', 'all');
+function ez_booking_add_assets() {
+    wp_enqueue_script( 'script', plugin_dir_url(__FILE__) . 'assets/script.js', array(), '1.1', 'all');
 }
 
-add_action( 'wp_enqueue_scripts', 'ez_booking_add_styles' );
+add_action( 'wp_enqueue_scripts', 'wplb_ajax_enqueue' );
+
+function wplb_ajax_enqueue() {
+    wp_enqueue_script( 'script', plugin_dir_url(__FILE__) . 'assets/script.js', array( 'jquery' ), '1.1', 'all');
+
+    wp_localize_script(
+        'script', 
+        'wplb_ajax_obj',
+        array(
+            'ajaxurl' => admin_url( 'admin-ajax.php' ), 
+            'nonce' => wp_create_nonce('wplb-nonce')
+        )
+    );
+}
+
+add_action( 'wp_ajax_nopriv_get_available_times', 'get_available_times');
+add_action( 'wp_ajax_get_available_times', 'get_available_times');
+
+function get_available_times() {
+    $selects = new Ez_Selects(31);
+    $availableDateTimes = $selects->getDateTimes($_POST['date']);
+
+    wp_send_json(['times' => $availableDateTimes]);
+	wp_die();
+}
+
+add_action( 'wp_ajax_nopriv_register_new_order', 'register_new_order');
+add_action( 'wp_ajax_register_new_order', 'register_new_order');
+
+function register_new_order(){
+    $orders_manager = new Ez_Manager('ez_booking_order');
+    $services_manager = new Ez_Manager('ez_booking_services');
+
+    $price = 0;
+
+    $file = & $_FILES['avatar'];
+    $overrides = [ 'test_form' => false ];
+    $avatar = wp_handle_upload( $file, $overrides);
+
+    $dateCreated = new DateTime('now');
+
+    if($_POST['services']){
+        foreach($_POST['services'] as $serviceId){
+            $service = $services_manager->get($serviceId);
+            if($service){
+                $price += $service['service_price'];
+            }
+        }
+    }
+
+    $data = [
+        'customer_name' => $_POST['name'],
+        'customer_phone' => $_POST['phone'],
+        'customer_email' => $_POST['email'],
+        'customer_avatar' => $avatar['url'],
+        'date_created' => $dateCreated->format('Y-m-d'),
+        'date' => $_POST['date'],
+        'time' => $_POST['time'],
+        'price' => $price,
+        'services' => json_encode($_POST['services']),
+        'answers' => json_encode($_POST['answers']),
+        'comment' => $_POST['comment'],
+        'is_confirmed' => 0
+    ];
+
+    $new_order = $orders_manager->insert($data, ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%d']);
+    
+    if($new_order){
+        wp_send_json(['message' => 'You order successfuly created', 'error' => 0]);
+    }else{
+        wp_send_json(['message' => 'You order was not created', 'error' => 1]);
+    }
+
+    wp_die();
+}
 
 function process_qiwi_notifications(){
     

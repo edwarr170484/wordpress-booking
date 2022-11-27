@@ -18,6 +18,7 @@ class Ez_Orders_Table extends WP_List_Table {
 			'order_info' => __( '<b>Order info</b>', 'ez_booking' ),
             'order_answers' => __( '<b>Q/A</b>', 'ez_booking' ),
             'order_is_confirm' => __( '<b>Confirmation</b>', 'ez_booking' ),
+            'order_is_cancel' => __( '<b>Canceled</b>', 'ez_booking' )
 		);
 
 		return $columns;
@@ -120,7 +121,7 @@ class Ez_Orders_Table extends WP_List_Table {
         if(count($services) > 0){
             foreach($services as $service){
                 if(in_array($service['id'], $orderedServces)){
-                    $orderServices .= $service['service_name'] . ' - ' . $service['service_price'] . ' EUR<br/>';
+                    $orderServices .= $service['service_name'] . ' - ' . $service['service_price'] . '€<br/>';
                 }
             }
         }
@@ -131,10 +132,11 @@ class Ez_Orders_Table extends WP_List_Table {
     function column_order_info($item){
         $comment = $item['comment'] && $item['comment'] != '' ? $item['comment'] : '-';
         return sprintf(
-            '<span style="font-weight: 700">Date:</span> %s<br/>
+            '<span style="font-weight: 700">Total amount:</span> %d€<br/>
+             <span style="font-weight: 700">Date:</span> %s<br/>
              <span style="font-weight: 700">Time:</span> %s<br/> 
              <span style="font-weight: 700">Comment:</span> %s
-            ', $item['date'], $item['time'], $comment
+            ', $item['price'], $item['date'], $item['time'], $comment
         );
     }
 
@@ -145,7 +147,7 @@ class Ez_Orders_Table extends WP_List_Table {
         $userAnswers = '';
 
         for($i=1; $i <= 5; $i++){
-            $userAnser = isset($answers[$i - 1]) ? $answers[$i - 1] : 'User answer: None';
+            $userAnser = isset($answers[$i - 1]) ? $answers[$i - 1] : 'None';
 
             $userAnswers .= '
             <div style="padding-bottom: 5px;margin-bottom: 10px; border-bottom: 1px solid #c3c4c7">
@@ -162,7 +164,10 @@ class Ez_Orders_Table extends WP_List_Table {
         return sprintf('<input type="checkbox" name="order[' . $item['id'] . '][is_confirmed]" value="1" class="full-width" %s />', $checked);
     }
 
-    
+    function column_order_is_cancel( $item){
+        $checked = $item['is_canceled'] ? 'checked' : '';
+        return sprintf('<input type="checkbox" name="order[' . $item['id'] . '][is_canceled]" value="1" class="full-width" %s />', $checked);
+    }
 
     function get_bulk_actions() {
         $actions = array(
@@ -179,7 +184,8 @@ class Ez_Orders_Table extends WP_List_Table {
                 if(isset($_POST['order']) && count($_POST['order']) > 0){
                     foreach($_POST['order'] as $key => $order){
                         $data = [
-                            'is_confirmed' => $order['is_confirmed']
+                            'is_confirmed' => $order['is_confirmed'],
+                            'is_canceled'  => $order['is_canceled']
                         ];
                         
                         $this->manager->update($key, $data, ['%d']);
@@ -190,9 +196,9 @@ class Ez_Orders_Table extends WP_List_Table {
             break;
 
             case 'delete':
-                if(count($_POST['serviceId']) > 0){
-                    foreach($_POST['serviceId'] as $serviceId){
-                        $this->manager->remove($serviceId);
+                if(count($_POST['orderId']) > 0){
+                    foreach($_POST['orderId'] as $orderId){
+                        $this->manager->remove($orderId);
                     }
 
                     add_settings_error( 'ez_booking_messages', 'ez_booking_message', __( 'Deleted success', 'ez_tg_booking' ), 'success' );
